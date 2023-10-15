@@ -1,0 +1,378 @@
+----- [ Gui ] -----
+local Gui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+local Frame = Instance.new("Frame", Gui)
+local SearchBar = Instance.new("TextBox", Frame)
+local ScrollBackground = Instance.new("ImageLabel", Frame)
+local ScrollFrame = Instance.new("ScrollingFrame", ScrollBackground)
+local SettingScroll = Instance.new("ScrollingFrame", ScrollBackground)
+local UIGridLayout = Instance.new("UIGridLayout", ScrollFrame)
+local Minus = Instance.new("TextButton", Frame)
+local Open = Instance.new("TextButton", Gui)
+local SettingButton = Instance.new("TextButton", Frame)
+
+-- [ UI Others ] --
+local UIGradient = Instance.new("UIGradient", Frame)
+local UICorner = Instance.new("UICorner", Frame)
+
+--- [ Setting ] ---
+local settingInfo = {
+	["Show UI When Execute"] = true,
+	["Run Lastest File"] = true,
+	["BackgroundImage"] = "Insert_Image_Id_Here"
+}
+
+----- [ FILES ] -----
+	function MakeFolder(Name)
+		local success, result = pcall(function()
+			listfiles(Name)
+		end)
+		if not success then
+			makefolder(Name)
+		end
+	end
+	function WriteFile(Name, Data)
+		local success, result = pcall(function()
+			local File = isfile(Name)
+			if File == false then
+				error("This file doesn't existed.")
+			end
+		end)
+		if not success then
+			writefile(Name, Data)
+		end
+	end
+	function jsonencode(Table)
+		return game:GetService("HttpService"):JSONEncode(Table)
+	end
+	function jsondecode(TableString)
+		return game:GetService("HttpService"):JSONDecode(TableString)
+	end
+	
+	MakeFolder("Red - Scripts Hub")
+	MakeFolder("Red - Scripts Hub/Scripts")
+	WriteFile("Red - Scripts Hub/Credit", "Script By - Red_BloxZ\nGui By - Red_BloxZ ( I'm bad at design gui, I don't has computer lol I'll do my best using my phone )\n\n" .. "Youtube: https://youtube.com/@Red_BloxZ_?si=FFrewjWLg2kKjN__\n" .. "Discord: red_bloxz")
+	WriteFile("Red - Scripts Hub/Settings", jsonencode(settingInfo))
+	WriteFile("Red - Scripts Hub/Favorited", "{}")
+----------
+
+function GetOnlyNumber(string)
+	local string = tostring(string)
+	return tostring(string:gsub("%D+", ""))
+end
+
+function UpdateSetting(Setting)
+	for name, toggle in pairs(Setting) do
+		settingInfo[name] = toggle
+	end
+end
+
+function ChangeBackgroundImage(Id)
+	ScrollBackground.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=" .. GetOnlyNumber(Id) .. "&width=420&height=420&format=png"
+	UpdateSetting({["BackgroundImage"] = GetOnlyNumber(Id)})	
+end
+
+-- [ Tween ] --
+local TweenService = game:GetService("TweenService")
+local TweenIsPlaying = false
+
+local ScrollBackgroundColor = UIGradient:Clone()
+
+local CS1 = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 100, 200)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(37, 37, 37))
+}
+
+local CS2 = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 150, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(37, 37, 37))
+}
+
+UIGradient.Color = CS1
+UIGradient.Rotation = 270
+
+ScrollBackgroundColor.Color = CS2
+ScrollBackgroundColor.Parent = ScrollBackground
+ScrollBackgroundColor.Rotation = 45
+ScrollBackgroundColor.Enabled = false
+
+UICorner.CornerRadius = UDim.new(0.1, 0)
+
+local SearchBarCorner = UICorner:Clone()
+SearchBarCorner.Parent = SearchBar
+SearchBarCorner.CornerRadius = UDim.new(1, 0)
+
+local MinusCorner = UICorner:Clone()
+MinusCorner.Parent = Minus
+MinusCorner.CornerRadius = UDim.new(1, 0)
+
+local OpenCorner = UICorner:Clone()
+OpenCorner.Parent = Open
+OpenCorner.CornerRadius = UDim.new(1, 0)
+
+local SettingButtonCorner = UICorner:Clone()
+SettingButtonCorner.Parent = SettingButton
+SettingButtonCorner.CornerRadius = UDim.new(1, 0)
+
+UICorner:Clone().Parent = ScrollBackground
+
+Frame.Size = UDim2.new(0.4, 0, 0.6, 0)
+Frame.Position = UDim2.new(0.5, 0, 0.4, 0)
+Frame.AnchorPoint = Vector2.new(0.5, 0.5)
+Frame.BackgroundColor3 = Color3.new(1, 1, 1)
+Frame.BackgroundTransparency = 0.1
+Frame.Active = true
+Frame.Draggable = true
+Frame.Visible = settingInfo["Show UI When Execute"]
+
+UIGridLayout.CellPadding = UDim2.new(0, 0, 0.01, 0)
+UIGridLayout.CellSize = UDim2.new(1, 0, 0.15, 0)
+
+UIGridLayout:Clone().Parent = SettingScroll
+
+SearchBar.Size = UDim2.new(0.2, 0, 0.1, 0)
+SearchBar.Position = UDim2.new(0.13, 0, 0.06, 0)
+SearchBar.AnchorPoint = Vector2.new(0.5, 0.5)
+SearchBar.BackgroundTransparency = 0.1
+SearchBar.BackgroundColor3 = Color3.fromRGB(76, 76, 76)
+SearchBar.TextColor3 = Color3.new(1, 1, 1)
+SearchBar.PlaceholderColor3 = Color3.new(0.7, 0.7, 0.7)
+SearchBar.TextScaled = true
+SearchBar.Text = ""
+SearchBar.TextSize = 30
+SearchBar.PlaceholderText = "🔎"
+
+local scrollingframe = ScrollFrame
+local searchbar = SearchBar
+function UpdateInputOfSearchText()
+	local InputText = string.upper(searchbar.Text)
+	for _, frame in pairs(scrollingframe:GetChildren())do
+		if frame:IsA("Frame") then
+			if InputText == "" or frame.Name:upper():find(InputText) ~= nil then
+				frame.Visible = true
+		 	else
+				frame.Visible = false
+			end
+		end
+	end
+end
+
+Minus.Size = UDim2.new(0.075, 0, 0.1, 0)
+Minus.Position = UDim2.new(0.94, 0, 0.06, 0)
+Minus.AnchorPoint = Vector2.new(0.5, 0.5)
+Minus.Text = "-"
+Minus.TextSize = 40
+Minus.TextColor3 = Color3.new(255, 255, 255)
+Minus.TextStrokeTransparency = 0
+Minus.BackgroundColor3 = Color3.fromRGB(225, 225, 225)
+Minus.BackgroundTransparency = 0.3
+Minus.LineHeight = 1.1
+Minus.MouseButton1Click:Connect(function()
+	Frame.Visible = false
+	Open.Visible = true
+end)
+
+SettingButton.Size = UDim2.new(0.075, 0, 0.1, 0)
+SettingButton.Position = UDim2.new(0.84, 0, 0.06, 0)
+SettingButton.AnchorPoint = Vector2.new(0.5, 0.5)
+SettingButton.Text = "⚙️"
+SettingButton.TextSize = 20
+SettingButton.LineHeight = 0.9
+SettingButton.BackgroundColor3 = Color3.fromRGB(37, 37, 37)
+SettingButton.BackgroundTransparency = 0.3
+SettingButton.Visible = false
+SettingButton.MouseButton1Click:Connect(function()
+	if ScrollFrame.Visible == true then
+		ScrollFrame.Visible = false
+	elseif ScrollFrame.Visible == false then
+		ScrollFrame.Visible = true
+	end
+end)
+
+UIGradient:Clone().Parent = Open
+Open.Size = UDim2.new(0.035, 0, 0.08, 0)
+Open.Position = UDim2.new(0.5, 0, 0, 0)
+Open.AnchorPoint = Vector2.new(0.5, 0.5)
+Open.Draggable = true
+Open.Text = "+"
+Open.TextSize = 40
+Open.TextColor3 = Color3.new(255, 255, 255)
+Open.TextStrokeTransparency = 0
+Open.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Open.BackgroundTransparency = 0.3
+Open.Visible = not settingInfo["Show UI When Execute"]
+Open.MouseButton1Click:Connect(function()
+	Frame.Visible = true
+	Open.Visible = false
+end)
+
+SettingScroll.Size = UDim2.new(1, 0, 1, 0)
+SettingScroll.Position = UDim2.new(0.5, 0, 0.5, 0)
+SettingScroll.AnchorPoint = Vector2.new(0.5, 0.5)
+SettingScroll.BackgroundTransparency = 1
+SettingScroll.BorderSizePixel = 0
+SettingScroll.ScrollBarThickness = 0
+SettingScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+SettingScroll.ElasticBehavior = Enum.ElasticBehavior.Never
+SettingScroll.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+SettingScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+SettingScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+
+ScrollBackground.Size = UDim2.new(0.95, 0, 0.85, 0)
+ScrollBackground.Position = UDim2.new(0.5, 0, 0.54, 0)
+ScrollBackground.AnchorPoint = Vector2.new(0.5, 0.5)
+ScrollBackground.BackgroundTransparency = 0.1
+ScrollBackground.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=" .. tostring(7914671762) .. "&width=420&height=420&format=png"
+ScrollBackground.BackgroundColor3 = Color3.new(1, 1, 1)
+
+ScrollFrame.Size = UDim2.new(1, 0, 1, 0)
+ScrollFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+ScrollFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.ScrollBarThickness = 0
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollFrame.ElasticBehavior = Enum.ElasticBehavior.Never
+ScrollFrame.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ScrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+
+function addSavedScript(data)
+	local name = tostring(tostring(data):sub(27, 75))
+	local name = tostring(name:gsub(".txt", ""))
+	local oldData = readfile(data)
+
+	local Frame = Instance.new("Frame", ScrollFrame)
+	local ScriptName = Instance.new("TextLabel", Frame)
+	local Run = Instance.new("TextButton", Frame)
+	local More = Instance.new("TextButton", Frame)
+	
+	local UICorner = Instance.new("UICorner", Frame)
+	UICorner.CornerRadius = UDim.new(1, 0) 
+	
+	local UICorner = Instance.new("UICorner", More)
+	UICorner.CornerRadius = UDim.new(1, 0)
+	
+	local UICorner = Instance.new("UICorner", Run)
+	UICorner.CornerRadius = UDim.new(1, 0)
+	
+	local UICorner = Instance.new("UICorner", ScriptName)
+	UICorner.CornerRadius = UDim.new(1, 0)
+	
+	Frame.Name = name
+	Frame.Active = false
+	Frame.Size = UDim2.new(1, 0, 0.15, 0)
+	Frame.BackgroundTransparency = 0.9
+	Frame.BackgroundColor3 = Color3.new(1, 1, 1)
+	
+	ScriptName.Size = UDim2.new(0.4, 0, 0.9, 0)
+	ScriptName.Position = UDim2.new(0.01, 0, 0.05, 0)
+	ScriptName.TextScaled = true
+	ScriptName.Font = Enum.Font.SourceSansBold
+	ScriptName.TextStrokeTransparency = 0
+	ScriptName.TextColor3 = Color3.new(1, 1, 1)
+	ScriptName.Text = name
+	ScriptName.BackgroundColor3 = Color3.fromRGB(37, 37, 37)
+	ScriptName.BackgroundTransparency = 0.6
+	
+	Run.Size = UDim2.new(0.125, 0, 0.9, 0)
+	Run.Position = UDim2.new(0.85, 0, 0.05, 0)
+	Run.Text = "RUN"
+	Run.TextStrokeTransparency = 0
+	Run.Font = Enum.Font.SourceSansBold
+	Run.TextScaled = true
+	Run.TextColor3 = Color3.fromRGB(0, 230, 0)
+	Run.BackgroundColor3 = Color3.fromRGB(37, 37, 37)
+	Run.BackgroundTransparency = 0.6
+	Run.MouseButton1Click:Connect(function()
+		if settingInfo["Run Lastest File"] == true then
+			loadstring(readfile(data))()
+		elseif settingInfo["Run Lastest File"] == false then
+			loadstring(oldData)()
+		else
+			loadstring(readfile(data))()
+		end
+	end)
+	
+	More.Size = UDim2.new(0.081, 0, 0.9, 0)
+	More.Position = UDim2.new(0.75, 0, 0.05, 0)
+	More.Text = "i"
+	More.TextStrokeTransparency = 0
+	More.LineHeight = 0.95
+	More.Font = Enum.Font.SourceSansBold
+	More.TextColor3 = Color3.new(1, 1, 1)
+	More.TextScaled = true
+	More.BackgroundColor3 = Color3.fromRGB(37, 37, 37)
+	More.BackgroundTransparency = 0.6
+	More.MouseButton1Click:Connect(function()
+		
+	end)
+	
+	wait()
+end
+
+for _, data in pairs(listfiles("Red - Scripts Hub/Scripts")) do
+	addSavedScript(data)
+end
+
+function UpdateSearchBar()
+	if TweenIsPlaying == true then
+		repeat wait() until TweenIsPlaying == false
+	end
+	if SearchBar.Text == "" then
+		TweenIsPlaying = true
+		local Info = TweenInfo.new(
+			0.1,
+			Enum.EasingStyle.Linear,
+			Enum.EasingDirection.In,
+			0
+		)
+		
+		local TweenPos = TweenService:Create(SearchBar, Info, {Position = UDim2.new(0.13, 0, 0.06, 0)})
+		local Tween = TweenService:Create(SearchBar, Info, {Size = UDim2.new(0.2, 0, 0.1, 0)})
+		
+		Tween:Play()
+		TweenPos:Play()
+		Tween.Completed:Connect(function()
+			TweenIsPlaying = false
+		end)
+	elseif SearchBar.Text ~= "" then
+		TweenIsPlaying = true
+		local Info = TweenInfo.new(
+			0.1,
+			Enum.EasingStyle.Linear,
+			Enum.EasingDirection.In,
+			0
+		)
+		
+		local TweenPos = TweenService:Create(SearchBar, Info, {Position = UDim2.new(0.28, 0, 0.06, 0)})
+		local Tween = TweenService:Create(SearchBar, Info, {Size = UDim2.new(0.5, 0, 0.1, 0)})
+		
+		Tween:Play()
+		TweenPos:Play()
+		Tween.Completed:Connect(function()
+			TweenIsPlaying = false
+		end)
+	end
+end
+
+function UpdateScrollBackground()
+	if ScrollBackground.IsLoaded == true then
+		ScrollBackgroundColor.Enabled = false
+	elseif ScrollBackground.IsLoaded == false then
+		ScrollBackgroundColor.Enabled = true
+	end
+end
+
+task.spawn(function()
+	repeat wait()
+		if TweenIsPlaying == false then
+			UpdateSearchBar()
+		end
+	until false
+end)
+
+task.spawn(function()
+	repeat wait()
+		UpdateScrollBackground()
+	until false
+end)
